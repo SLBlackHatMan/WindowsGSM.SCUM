@@ -31,7 +31,7 @@ namespace WindowsGSM.Plugins
 
         // - Settings properties for SteamCMD installer
         public override bool loginAnonymous => true;
-        public override string AppId => "1824980"; /* Correct AppID for SCUM Dedicated Server */
+        public override string AppId => "911460"; /* Correct AppID for SCUM Dedicated Server */
 
         // - Game server Fixed variables
         public override string StartPath => @"SCUM\Binaries\Win64\SCUMServer.exe"; // Game server start path
