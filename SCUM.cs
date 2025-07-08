@@ -15,10 +15,10 @@ namespace WindowsGSM.Plugins
         public Plugin Plugin = new Plugin
         {
             name = "WindowsGSM.Scum",
-            author = "Gemini",
+            author = "SLBlackHatMan",
             description = "WindowsGSM plugin for supporting Scum Dedicated Server",
             version = "1.1.0",
-            url = "https://github.com/WindowsGSM/WindowsGSM.Scum",
+            url = "https://github.com/SLBlackHatMan/WindowsGSM.SCUM",
             color = "#1E8449"
         };
 
