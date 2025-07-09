@@ -53,7 +53,7 @@ namespace WindowsGSM.Plugins
         {
             string configPath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, @"SCUM\Saved\Config\WindowsServer\ServerSettings.ini");
             // Your URL points to your repo, which is fine if that's what you intend.
-            string SCUMCFGURL = "https://raw.githubusercontent.com/SLBlackHatMan/WindowsGSM.SCUM/refs/heads/main/Serverconfig.ini";
+            string SCUMCFGURL = "https://raw.githubusercontent.com/SLBlackHatMan/WindowsGSM.SCUM/refs/heads/main/serverconfig.ini";
 
             try
             {
