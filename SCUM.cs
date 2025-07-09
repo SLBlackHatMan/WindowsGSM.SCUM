@@ -35,17 +35,17 @@ namespace WindowsGSM.Plugins
         public override string AppId => "3792580"; // CORRECT AppId for SCUM Dedicated Server
 
         // - Game server Fixed variables
-        public override string StartPath => @"SCUM\Binaries\Win64\SCUMServer-Win64-Shipping.exe"; // This path was correct
+        public override string StartPath => @"SCUM\Binaries\Win64\SCUMServer.exe"; // This path was correct
         public string FullName = "SCUM Dedicated Server";
         public bool AllowsEmbedConsole = true;
         public int PortIncrements = 2; // SCUM uses multiple ports, typically GamePort and QueryPort are sequential.
         public object QueryMethod = new A2S(); // MUST NOT BE NULL. Use A2S for querying.
 
         // - Game server default values
-        public string Port = "7040"; // Common default SCUM port
-        public string QueryPort = "7041"; // Common default SCUM query port
+        public string Port = "7777"; // Common default SCUM port
+        public string QueryPort = "7779"; // Common default SCUM query port
         public string Defaultmap = "SCUM"; // Map is always SCUM island
-        public string Maxplayers = "64";
+        public string Maxplayers = "120";
         public string Additional = "";
 
         // - Create a default cfg for the game server after installation
