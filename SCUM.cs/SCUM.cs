@@ -10,98 +10,114 @@ namespace WindowsGSM.Plugins
 {
     public class SCUM : SteamCMDAgent
     {
-        // - Plugin Details
         public Plugin Plugin = new Plugin
         {
             name = "WindowsGSM.SCUM",
-            author = "SLBlackHatMan)",
+            author = "SLBlackHatMan",
             description = "WindowsGSM plugin for supporting SCUM Dedicated Server",
-            version = "1.5.5",
+            version = "1.5.8",
             url = "https://github.com/SLBlackHatMan/WindowsGSM.SCUM",
             color = "#34c9eb"
         };
 
-        // - Settings properties for SteamCMD installer
+        // SteamCMD
         public override bool loginAnonymous => true;
         public override string AppId => "3792580";
 
-        // - Standard Constructor and properties
-        public SCUM(ServerConfig serverData) : base(serverData) => base.serverData = _serverData = serverData;
         private readonly ServerConfig _serverData;
-        public string Error, Notice;
 
-        // - Game server Fixed variables
+        // Game server info
         public override string StartPath => @"SCUM\Binaries\Win64\SCUMServer.exe";
         public string FullName = "SCUM Dedicated Server";
         public bool AllowsEmbedConsole = true;
         public int PortIncrements = 10;
         public object QueryMethod = new A2S();
 
-        // - Game server default values
-        public string Port = "27042";
-        public string QueryPort = "27015";
-        public string Defaultmap = "SCUM";
-        public string Maxplayers = "32";
-        public string Additional = "-nosteamclient -log";
-
-        // - Create a default cfg for the game server after installation
-        public async void CreateServerCFG()
+        // Constructor
+        public SCUM(ServerConfig serverData) : base(serverData)
         {
-            string configPath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, @"SCUM\Saved\Config\WindowsServer\ServerSettings.ini");
-            string configFolder = Path.GetDirectoryName(configPath);
-
-            if (configFolder != null && !Directory.Exists(configFolder))
-            {
-                Directory.CreateDirectory(configFolder);
-            }
-
-            var settings = new string[]
-            {
-                "[/script/scum.serversettings]",
-                $"MaxPlayers={_serverData.ServerMaxPlayer}",
-                $"Port={_serverData.ServerPort}",
-                $"QueryPort={_serverData.ServerQueryPort}",
-                $"BeaconPort={int.Parse(_serverData.ServerPort) + 1}",
-                $"ServerName={_serverData.ServerName}",
-                "ServerPassword=",
-                "TimeOfDaySpeed=3.84",
-                "NightTimeDarkness=0.0",
-                "RegisterToMasterServer=True"
-            };
-
-            File.WriteAllLines(configPath, settings);
+            _serverData = serverData;
         }
 
-        // - Start server function
+        // Create server config (SYNC IO – REQUIRED)
+        public Task CreateServerCFG()
+        {
+            try
+            {
+                string configPath = Functions.ServerPath.GetServersServerFiles(
+                    _serverData.ServerID,
+                    @"SCUM\Saved\Config\WindowsServer\ServerSettings.ini"
+                );
+
+                Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+
+                int basePort;
+                if (!int.TryParse(_serverData.ServerPort, out basePort))
+                    basePort = 27042;
+
+                var settings = new[]
+                {
+                    "[/script/scum.serversettings]",
+                    $"ServerName=\"{_serverData.ServerName}\"",
+                    $"MaxPlayers={_serverData.ServerMaxPlayer}",
+                    $"Port={basePort}",
+                    $"QueryPort={_serverData.ServerQueryPort}",
+                    $"BeaconPort={basePort + 1}",
+                    "ServerPassword=",
+                    "TimeOfDaySpeed=3.84",
+                    "NightTimeDarkness=0.0",
+                    "RegisterToMasterServer=True"
+                };
+
+                File.WriteAllLines(configPath, settings);
+            }
+            catch (Exception ex)
+            {
+                Error = ex.Message;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        // Start server
         public async Task<Process> Start()
         {
-            string shipExePath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, StartPath);
-            if (!File.Exists(shipExePath))
+            await CreateServerCFG();
+
+            string exePath = Functions.ServerPath.GetServersServerFiles(
+                _serverData.ServerID,
+                StartPath
+            );
+
+            if (!File.Exists(exePath))
             {
-                Error = $"{Path.GetFileName(shipExePath)} not found ({shipExePath})";
+                Error = "SCUMServer.exe not found";
                 return null;
             }
 
-            string param = $"-MultiHome={_serverData.ServerIP} {_serverData.ServerParam}";
+            string param =
+                "-MultiHome=" + _serverData.ServerIP + " " +
+                "-port=" + _serverData.ServerPort + " " +
+                "-QueryPort=" + _serverData.ServerQueryPort + " " +
+                _serverData.ServerParam;
 
-            Process p = new Process
+            var p = new Process
             {
                 StartInfo =
                 {
-                    FileName = shipExePath,
+                    FileName = exePath,
                     Arguments = param,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    CreateNoWindow = true,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    RedirectStandardError = true
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
                 },
                 EnableRaisingEvents = true
             };
 
-            var serverConsole = new ServerConsole(_serverData.ServerID);
-            p.OutputDataReceived += serverConsole.AddOutput;
-            p.ErrorDataReceived += serverConsole.AddOutput;
+            var console = new ServerConsole(_serverData.ServerID);
+            p.OutputDataReceived += console.AddOutput;
+            p.ErrorDataReceived += console.AddOutput;
 
             p.Start();
             p.BeginOutputReadLine();
@@ -110,39 +126,22 @@ namespace WindowsGSM.Plugins
             return p;
         }
 
-        // - Stop server function
-        public async Task Stop(Process p)
+        // Stop server (Framework-safe)
+        public Task Stop(Process p)
         {
-            await Task.Run(() =>
+            if (p != null && !p.HasExited)
             {
-                if (p != null && !p.HasExited)
+                try
                 {
-                    p.Kill();
+                    p.CloseMainWindow();
                 }
-            });
-        }
+                catch
+                {
+                    try { p.Kill(); } catch { }
+                }
+            }
 
-        // - Install server function
-        public async Task<Process> Install()
-        {
-            var steamCMD = new Installer.SteamCMD();
-            Process p = await steamCMD.Install(_serverData.ServerID, string.Empty, AppId, true, loginAnonymous);
-            Error = steamCMD.Error;
-            return p;
+            return Task.CompletedTask;
         }
-
-        // - Update server function
-        public async Task<Process> Update(bool validate = false, string custom = null)
-        {
-            var (p, error) = await Installer.SteamCMD.UpdateEx(_serverData.ServerID, AppId, validate, custom: custom, loginAnonymous: loginAnonymous);
-            Error = error;
-            return p;
-        }
-
-        // - Validation functions
-        public bool IsInstallValid() => File.Exists(Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, StartPath));
-        public bool IsImportValid(string path) => File.Exists(Path.Combine(path, StartPath));
-        public string GetLocalBuild() => new Installer.SteamCMD().GetLocalBuild(_serverData.ServerID, AppId);
-        public async Task<string> GetRemoteBuild() => await new Installer.SteamCMD().GetRemoteBuild(AppId);
     }
 }
