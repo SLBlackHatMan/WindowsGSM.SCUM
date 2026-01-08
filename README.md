@@ -1,85 +1,192 @@
-# SCUM Dedicated Server Plugin for WindowsGSM
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/your-username/your-repo-name?style=for-the-badge)
+SCUM Dedicated Server Plugin for WindowsGSM
 
-This plugin adds support for managing a **SCUM Dedicated Server** within the WindowsGSM application.
+This plugin adds support for running a SCUM Dedicated Server using WindowsGSM on Windows systems.
 
----
+Tested with:
 
-## Features
+WindowsGSM v1.23.1
 
-* **Install/Update:** Download and update the SCUM server using the correct, official AppId.
-* **Monitor:** View server status, player count, and other details directly from the WGS M UI.
-* **Start/Stop/Restart:** Full control over the server process.
-* **Auto-Configuration:** Automatically generates a default `ServerSettings.ini` on first install.
-* **Embeddable Console:** View the live server console output within WindowsGSM.
-* **Backup/Restore:** Utilize WindowsGSM's built-in backup functionality.
+SCUM Dedicated Server (Steam AppID: 3792580)
 
----
+Windows Server 2016 / 2019 / 2022
 
-## Prerequisites
+Windows 10 / 11
 
-* You must have the latest version of [WindowsGSM](https://windowsgsm.com/) installed on your machine.
-* Your machine must meet the minimum requirements to run a SCUM server.
-* You are running a 64-bit version of Windows.
+ZAP-Hosting (Game Server & Rootserver)
 
----
+VPS / Dedicated Servers
 
-## Installation
+✨ Features
 
-1.  **Download:** Click [here](https://github.com/your-username/your-repo-name/releases/latest) to download the latest release (`SCUM.cs`).
-2.  **Move:** Place the downloaded `SCUM.cs` file into the `plugins` folder of your WindowsGSM installation directory.
-    > Example Path: `C:\WindowsGSM\plugins`
-3.  **Restart:** Close and restart the WindowsGSM application. The plugin will be loaded automatically.
+Install & Update SCUM Dedicated Server via SteamCMD
 
----
+Start / Stop / Restart server from WindowsGSM
 
-## Configuration
+Live Console Output inside WindowsGSM
 
-### Initial Setup
+Player & Status Monitoring
 
-The plugin will create a default `ServerSettings.ini` file upon first installation. The settings used (Server Name, Port, etc.) are taken from the values you input in the WindowsGSM installation panel at that time.
+WindowsGSM Backup Support
 
-### How to Change Server Settings (e.g., Server Name)
+Hosting-provider friendly (no forced MultiHome or QueryPort)
 
-After installation, the settings in the WindowsGSM UI **do not** automatically update the game server's config file. You must edit the file directly.
+⚠️ This plugin is intentionally minimal to ensure maximum compatibility with managed hosting providers.
 
-1.  In WindowsGSM, select your SCUM server.
-2.  Click the **EDIT CONFIG** button. This will open the `ServerSettings.ini` file in a text editor.
-3.  Find the setting you want to change (e.g., `ServerName=YourOldName`) and modify it.
-4.  Save the file and close the editor.
-5.  **Restart** your server from the WindowsGSM panel for the changes to take effect.
+🧩 Prerequisites
 
----
+Latest version of WindowsGSM
+👉 https://windowsgsm.com/
 
-## Troubleshooting
+64-bit Windows operating system
 
-This section covers the most common issues users face.
+System meets SCUM Dedicated Server minimum requirements
 
-### 1. Server Not Showing in the In-Game List
+⚠️ REQUIRED RUNTIMES (VERY IMPORTANT)
 
-This is the most common problem and is almost always caused by one of the following issues:
+SCUM uses Unreal Engine, which requires several Microsoft runtimes.
+On fresh Windows installs (especially Windows Server 2016) the server will NOT start without these.
 
-* **Correct AppId:** `3792580` (This is an old, invalid ID that will download a broken server version).
+✅ You MUST install ALL of the following
+1️⃣ .NET Framework 4.8
 
-> **Solution:** Ensure your `SCUM.cs` plugin file uses `AppId = "3792580"`. If you have installed the server using the wrong ID, you must **delete the server** in WindowsGSM and perform a clean installation with the corrected plugin.
+Required by WindowsGSM
 
-#### B. Firewall or Ports are Blocked
-For your server to be visible to the public, you must open the required ports. This must be done in **two places** if you are using a VPS:
-1.  Your **VPS Provider's Control Panel** (e.g., AWS, Vultr, Google Cloud).
-2.  The **Windows Defender Firewall** inside the server's operating system.
+👉 https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48
 
-You must open the following ports with the **UDP** protocol:
+2️⃣ Visual C++ Redistributable 2015–2022 (x64)
 
-* **Game Port:** The port you set in WGS M (default `7042`).
-* **Query Port:** The query port you set in WGS M (default `27015`).
-* **Beacon Port:** This is your Game Port + 1 (e.g., `7043`).
+Required by SCUMServer.exe
 
-### 2. Server Log Shows It's Using the Wrong Port (e.g., 7777)
+👉 https://aka.ms/vs/17/release/vc_redist.x64.exe
 
-If you check your server's logs and see a line like `IpNetDriver listening on port 7777`, even though you configured a different port, this is a symptom of the `AppId` issue described above.
+3️⃣ Visual C++ Redistributable 2013 (x64)
 
----
+Required by Unreal Engine components
 
-## License
+👉 https://www.microsoft.com/en-us/download/details.aspx?id=40784
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+4️⃣ DirectX End-User Runtime (June 2010)
+
+Required even on headless servers
+
+👉 https://www.microsoft.com/en-us/download/details.aspx?id=8109
+
+🔁 IMPORTANT
+
+After installing all dependencies:
+
+Reboot the server
+
+Run SCUMServer.exe once manually before starting via WindowsGSM
+
+Path:
+
+SCUM\Binaries\Win64\SCUMServer.exe
+
+
+This initializes Unreal Engine files and prevents silent crashes.
+
+📦 Installation
+
+Download the latest release from:
+👉 https://github.com/SLBlackHatMan/WindowsGSM.SCUM/releases/latest
+
+Import Plugin in WindowsGSM:
+
+WindowsGSM → Plugins → Import Plugin
+
+
+Restart WindowsGSM
+
+Create a new SCUM server
+
+Install & start the server
+
+⚙️ Configuration
+Ports
+
+Game Port: Set in WindowsGSM
+
+Query Port: Managed automatically
+
+Beacon Port: Game Port + 1
+
+⚠️ ZAP-Hosting Users
+
+Use ONLY the ports assigned in the ZAP panel
+
+Do NOT invent custom ports
+
+Do NOT force -MultiHome
+
+NAT & port routing are handled by ZAP
+
+🚫 Common Error: Exit Code -1073741515
+Exit Code: -1073741515
+
+
+This means:
+
+❌ Required runtime DLLs are missing
+
+✅ Fix
+
+Install all runtimes listed above, then reboot.
+
+This is not a plugin bug.
+
+🌐 Server Not Showing / Direct Connect Fails
+
+Checklist:
+
+✔ Server is running
+
+✔ Correct ports are used
+
+✔ Required runtimes installed
+
+✔ UDP allowed in firewall / provider panel
+
+✔ Host-assigned ports used (ZAP)
+
+⏳ Server list registration may take a few minutes after first start.
+
+🛑 What This Plugin Intentionally Does NOT Do
+
+Does not force -MultiHome
+
+Does not force -QueryPort
+
+Does not overwrite server config files
+
+Does not hard-kill the server process
+
+This is intentional for maximum compatibility with managed hosting providers.
+
+🧪 Compatibility
+Environment	Supported
+WindowsGSM v1.23.1	✅
+Windows Server 2016	✅ (runtimes required)
+Windows Server 2019+	✅
+Windows 10 / 11	✅
+ZAP-Hosting Game Server	✅
+ZAP Rootserver / VPS	✅
+Dedicated Server	✅
+🐛 Issues & Support
+
+When opening an issue, please include:
+
+Windows version
+
+WindowsGSM version
+
+Hosting provider (ZAP, VPS, Dedicated)
+
+Crash log (if any)
+
+Confirmation that required runtimes are installed
+
+📜 License
+
+MIT License
+Free to use, modify, and distribute.
